@@ -13,5 +13,5 @@ class BunnyManager {
 
     bool turnComplete();
     void halfPopulation();
-    bool sortList(const std::shared_ptr<Bunny>& a, const std::shared_ptr<Bunny>& b);
+    static bool sortList(const std::shared_ptr<Bunny>& a, const std::shared_ptr<Bunny>& b);
 };
