@@ -7,11 +7,13 @@
 
 class Bunny {
    private:
+    char symbol;
+    std::pair<int, int> location;
     SEX sex;
     COLOUR colour;
     int age = 0;
     std::string name;
-    bool radioactiveMutantVampireBunny;
+    bool infected;
     std::vector<std::string> punnyBunnyNames = {
         "Spartacus",
         "Babbity",
@@ -59,17 +61,22 @@ class Bunny {
         "Santa Paws"};
 
    public:
-    Bunny();
-    explicit Bunny(COLOUR motherColour);
+    explicit Bunny(std::pair<int, int> loc);
+    explicit Bunny(std::pair<int, int> loc, COLOUR motherColour);
 
+    char getSymbol();
+    std::pair<int, int> getLocation();
+    void setLocation(std::pair<int, int> loc);
     SEX getSex();
     COLOUR getColour();
+    void setColour(COLOUR col);
     int getAge();
-    bool getRadioactiveMutantVampireBunny();
-    void setRadioactiveMutantVampireBunny(bool mutantVampireBunny);
+    bool getInfected();
+    void setInfected(bool mutantVampireBunny);
 
     bool incrementAge();
     void printInfo();
     void dead();
-    bool operator<(const Bunny &otherBunny) const;
+    std::string colourString();
+    std::string sexString();
 };

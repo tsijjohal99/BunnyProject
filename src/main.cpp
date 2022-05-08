@@ -32,7 +32,7 @@ bool runSimulation(BunnyManager &theBunnys) {
             return false;
         }
         case 'k': {
-            theBunnys.thanos();
+            theBunnys.halfPopulation();
         }
         default: {
             system("cls");
