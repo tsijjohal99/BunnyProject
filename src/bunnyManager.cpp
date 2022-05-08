@@ -66,7 +66,7 @@ bool BunnyManager::turnComplete() {
     }
 
     if (!listOfBunnys.empty()) {
-        listOfBunnys.sort();  // sorts list
+        listOfBunnys.sort(sortList);  // sorts list
         for (const std::shared_ptr<Bunny>& rabbit : listOfBunnys) {
             rabbit->printInfo();
         }
@@ -84,4 +84,8 @@ void BunnyManager::halfPopulation() {
         (*it)->dead();
         listOfBunnys.erase(it);
     }
+}
+
+bool BunnyManager::sortList(const std::shared_ptr<Bunny>& a, const std::shared_ptr<Bunny>& b) {
+    return a->getAge() < b->getAge();
 }

@@ -99,7 +99,3 @@ void Bunny::dead() {
     std::cout << died << name << " has died!" << std::endl;
     Sleep(100);
 }
-
-bool Bunny::operator<(const Bunny &otherBunny) const {
-    return age < otherBunny.age;
-}

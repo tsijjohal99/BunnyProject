@@ -71,5 +71,4 @@ class Bunny {
     bool incrementAge();
     void printInfo();
     void dead();
-    bool operator<(const Bunny &otherBunny) const;
 };
