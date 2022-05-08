@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <map>
 #include <string>
 
 Bunny::Bunny() {
@@ -60,42 +61,28 @@ bool Bunny::incrementAge() {
 }
 
 void Bunny::printInfo() {
-    std::string radio = (infected) ? " Infected " : " Bunny ";
-    std::cout << "Name: " << name << ", " << age << " year old, ";
-    switch (sex) {
-        case SEX::MALE: {
-            std::cout << "Male";
-            break;
-        }
-        case SEX::FEMALE: {
-            std::cout << "Female";
-            break;
-        }
-    }
-    std::cout << ", ";
-    switch (colour) {
-        case COLOUR::BLACK: {
-            std::cout << "Black";
-            break;
-        }
-        case COLOUR::BROWN: {
-            std::cout << "Brown";
-            break;
-        }
-        case COLOUR::SPOTTED: {
-            std::cout << "Spotted";
-            break;
-        }
-        case COLOUR::WHITE: {
-            std::cout << "White";
-            break;
-        }
-    }
-    std::cout << radio << std::endl;
+    std::string radio = (infected) ? " Infected " : " ";
+    std::cout << "Name: " << name << ", " << age << " year old, " << sexString() << ", " << colourString() << radio << "Bunny" << std::endl;
 }
 
 void Bunny::dead() {
     std::string died = (infected) ? "Infected " : "";
     std::cout << died << name << " has died!" << std::endl;
     Sleep(100);
+}
+
+std::string Bunny::colourString() {
+    static const std::map<COLOUR, std::string> ColourMap = {
+        {COLOUR::BLACK, "Black"},
+        {COLOUR::BROWN, "Brown"},
+        {COLOUR::SPOTTED, "Spotted"},
+        {COLOUR::WHITE, "White"}};
+    return ColourMap.at(colour);
+}
+
+std::string Bunny::sexString() {
+    static const std::map<SEX, std::string> SexMap = {
+        {SEX::MALE, "Male"},
+        {SEX::FEMALE, "Female"}};
+    return SexMap.at(sex);
 }

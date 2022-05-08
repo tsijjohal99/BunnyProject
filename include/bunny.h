@@ -71,4 +71,6 @@ class Bunny {
     bool incrementAge();
     void printInfo();
     void dead();
+    std::string colourString();
+    std::string sexString();
 };
