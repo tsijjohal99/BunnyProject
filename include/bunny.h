@@ -11,7 +11,7 @@ class Bunny {
     COLOUR colour;
     int age = 0;
     std::string name;
-    bool radioactiveMutantVampireBunny;
+    bool infected;
     std::vector<std::string> punnyBunnyNames = {
         "Spartacus",
         "Babbity",
@@ -65,8 +65,8 @@ class Bunny {
     SEX getSex();
     COLOUR getColour();
     int getAge();
-    bool getRadioactiveMutantVampireBunny();
-    void setRadioactiveMutantVampireBunny(bool mutantVampireBunny);
+    bool getInfected();
+    void setInfected(bool inf);
 
     bool incrementAge();
     void printInfo();

@@ -12,5 +12,5 @@ class BunnyManager {
     BunnyManager();
 
     bool turnComplete();
-    void thanos();
+    void halfPopulation();
 };

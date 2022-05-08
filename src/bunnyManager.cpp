@@ -20,13 +20,13 @@ bool BunnyManager::turnComplete() {
         if (dead) {
             deadBunnys.push_back(rabbit);  // makes a list of dead rabbits
         } else {
-            if (!rabbit->getRadioactiveMutantVampireBunny() && rabbit->getAge() >= 2) {
+            if (!rabbit->getInfected() && rabbit->getAge() >= 2) {
                 if (!maleExistsOfAge && rabbit->getSex() == SEX::MALE) {  // checks thats there is a male that can reproduce
                     maleExistsOfAge = true;
                 } else if (rabbit->getSex() == SEX::FEMALE) {  // checks how many female can reproduce
                     femaleCount++;
                 }
-            } else if (rabbit->getRadioactiveMutantVampireBunny()) {
+            } else if (rabbit->getInfected()) {
                 radioactiveCount++;
             }
         }
@@ -54,15 +54,15 @@ bool BunnyManager::turnComplete() {
 
     for (int i = 0; i < radioactiveCount; i++) {
         for (std::shared_ptr<Bunny> rabbit : listOfBunnys) {
-            if (!rabbit->getRadioactiveMutantVampireBunny()) {
-                rabbit->setRadioactiveMutantVampireBunny(true);
+            if (!rabbit->getInfected()) {
+                rabbit->setInfected(true);
                 break;
             }
         }
     }
 
     if (listOfBunnys.size() > 1000) {
-        thanos();
+        halfPopulation();
     }
 
     if (!listOfBunnys.empty()) {
@@ -77,7 +77,7 @@ bool BunnyManager::turnComplete() {
     }
 }
 
-void BunnyManager::thanos() {
+void BunnyManager::halfPopulation() {
     for (int i = 0; i < listOfBunnys.size() / 2; i++) {
         std::list<std::shared_ptr<Bunny>>::iterator it = listOfBunnys.begin();
         advance(it, rand() % listOfBunnys.size());
