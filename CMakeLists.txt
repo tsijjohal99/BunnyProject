@@ -8,7 +8,7 @@ project(BunnyProject VERSION 1.0)
 
 include_directories(include)
 
-set(SRC_FILES src/main.cpp src/bunny.cpp src/bunnyManager.cpp)
+set(SRC_FILES src/main.cpp src/bunny.cpp src/bunnyManager.cpp src/logicHandler.cpp)
 
 add_executable(BunnyProject ${SRC_FILES})
 
