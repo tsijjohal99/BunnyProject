@@ -8,67 +8,79 @@
 #include <random>
 
 BunnyManager::BunnyManager() {
-    gridOfBunnys.resize(gridSize, std::vector<std::shared_ptr<Bunny>>(gridSize));
+    gridOfBunnies.resize(gridSize, std::vector<std::shared_ptr<Bunny>>(gridSize));
     for (int i = 0; i < 5; i++) {
-        // listOfBunnys.push_back(std::make_shared<Bunny>());
-        std::pair<int, int> random = {rand() % 80, rand() % 80};
-        if (gridOfBunnys[random.first][random.second] == nullptr) {
-            gridOfBunnys[random.first][random.second] = std::make_shared<Bunny>(random);
-            noOfBunnys++;
-        } else {
+        std::pair<int, int> random = {rand() % gridSize, rand() % gridSize};
+        if (std::any_of(listOfBunnies.begin(), listOfBunnies.end(), [random](std::shared_ptr<Bunny> rabbit) { return rabbit->getLocation() == random; })) {
             i--;
+        } else {
+            listOfBunnies.push_back(std::make_shared<Bunny>(random, rand() % 10));
+            noOfBunnies++;
         }
     }
+    createGrid();
+    printList();
+    displayGrid();
 }
 
 bool BunnyManager::turnComplete() {
-    bool maleExistsOfAge = false, femaleCountGreaterThanZero = false;
-    listOfBunnys.clear();
-    locationOfMothers.clear();
-    locationOfInfected.clear();
+    bool maleExistsOfAge = false;
 
-    for (int i = 0; i < gridSize; i++) {
-        for (int j = 0; j < gridSize; j++) {
-            if (gridOfBunnys[i][j] != nullptr) {
-                bool dead = gridOfBunnys[i][j]->incrementAge();  // increase age by 1
-                if (dead) {
-                    gridOfBunnys[i][j] = nullptr;  // makes dead rabbits
-                    noOfBunnys--;
-                } else {
-                    if (!maleExistsOfAge && gridOfBunnys[i][j]->getSex() == SEX::MALE && !gridOfBunnys[i][j]->getInfected() && gridOfBunnys[i][j]->getAge() >= 2) {  // checks thats there is a male that can reproduce
-                        maleExistsOfAge = true;
-                    }
-                    listOfBunnys.push_back(movement(i, j));
-                }
+    std::list<std::shared_ptr<Bunny>> deadRabbits;
+
+    for (auto rabbit : listOfBunnies) {
+        bool dead = rabbit->incrementAge();  // increase age by 1
+        if (dead) {
+            deadRabbits.push_back(rabbit);
+            rabbit = nullptr;  // makes dead rabbits
+            noOfBunnies--;
+        } else {
+            if (rabbit->getSymbol() == 'M' && !maleExistsOfAge) {  // checks thats there is a male that can reproduce
+                maleExistsOfAge = true;
             }
+            rabbit->setLocation(movement(rabbit));
         }
     }
 
-    for (const auto& rabbit : listOfBunnys) {
-        if (!rabbit->getInfected() && rabbit->getAge() >= 2 && rabbit->getSex() == SEX::FEMALE) {  // checks how many female can reproduce
-            femaleCountGreaterThanZero = true;
-            locationOfMothers.push_back(rabbit->getLocation());
+    for (const auto& dead : deadRabbits) {
+        auto it = std::find(listOfBunnies.begin(), listOfBunnies.end(), dead);
+        if (it != listOfBunnies.end()) {
+            listOfBunnies.erase(it);
+        }
+        gridOfBunnies[dead->getLocation().first][dead->getLocation().second] = nullptr;
+    }
+
+    std::list<std::shared_ptr<Bunny>> listOfNewInfected;
+
+    for (auto rabbit : listOfBunnies) {
+        if (maleExistsOfAge && rabbit->getSymbol() == 'F') {  // checks how many female can reproduce
+            born(rabbit);
         } else if (rabbit->getInfected()) {
-            locationOfInfected.push_back(rabbit->getLocation());
+            listOfNewInfected.push_back(infect(rabbit));
         }
     }
 
-    if (maleExistsOfAge && femaleCountGreaterThanZero) {  // newborns
-        born();
+    for (const auto& infected : listOfNewInfected) {
+        if (infected != nullptr) {
+            auto it = std::find(listOfBunnies.begin(), listOfBunnies.end(), infected);
+            if (it != listOfBunnies.end()) {
+                listOfBunnies.erase(it);
+            }
+            gridOfBunnies[infected->getLocation().first][infected->getLocation().second]->setInfected(true);
+            gridOfBunnies[infected->getLocation().first][infected->getLocation().second]->setSymbol('X');
+            listOfBunnies.push_back(gridOfBunnies[infected->getLocation().first][infected->getLocation().second]);
+        }
     }
 
-    infect();
-
-    if (listOfBunnys.size() > 1000) {
+    if (listOfBunnies.size() > 1000) {
         halfPopulation();
     }
 
-    createList();
-
-    if (!listOfBunnys.empty()) {
-        listOfBunnys.sort(sortList);  // sorts list
+    if (!listOfBunnies.empty()) {
+        listOfBunnies.sort(sortList);  // sorts list
+        printList();
         displayGrid();
-        std::cout << noOfBunnys << " bunnys are alive." << std::endl;
+        std::cout << noOfBunnies << " bunnies are alive." << std::endl;
         return true;
     } else {
         return false;
@@ -76,30 +88,23 @@ bool BunnyManager::turnComplete() {
 }
 
 void BunnyManager::halfPopulation() {
-    std::vector<std::shared_ptr<Bunny>> vectorOfBunny(listOfBunnys.size());
+    std::vector<std::shared_ptr<Bunny>> vectorOfBunny(listOfBunnies.size());
     int i = 0;
-    for (const auto& rabbit : listOfBunnys) {
+    for (const auto& rabbit : listOfBunnies) {
         vectorOfBunny[i] = rabbit;
         i++;
     }
     std::random_shuffle(vectorOfBunny.begin(), vectorOfBunny.end());
-    for (int j = noOfBunnys / 2; j < noOfBunnys; j++) {
+    for (int j = noOfBunnies / 2; j < noOfBunnies; j++) {
         vectorOfBunny[i]->dead();
+        gridOfBunnies[vectorOfBunny[i]->getLocation().first][vectorOfBunny[i]->getLocation().second] = nullptr;
     }
-    vectorOfBunny.resize(int(noOfBunnys / 2));
-    listOfBunnys.clear();
-    noOfBunnys = vectorOfBunny.size();
+    vectorOfBunny.resize(int(noOfBunnies / 2));
+    listOfBunnies.clear();
+    noOfBunnies = vectorOfBunny.size();
     for (const auto& rabbit : vectorOfBunny) {
-        listOfBunnys.push_back(rabbit);
+        listOfBunnies.push_back(rabbit);
     }
-    /*for (int i = 0; i < noOfBunnys / 2; i++) {
-        std::list<std::shared_ptr<Bunny>>::iterator it = listOfBunnys.begin();
-        advance(it, rand() % listOfBunnys.size());
-        (*it)->dead();
-        std::pair<int, int> location = (*it)->getLocation();
-        gridOfBunnys[location.first][location.second] = nullptr;
-        listOfBunnys.erase(it);
-    }*/
 }
 
 bool BunnyManager::sortList(const std::shared_ptr<Bunny>& a, const std::shared_ptr<Bunny>& b) {
@@ -108,12 +113,12 @@ bool BunnyManager::sortList(const std::shared_ptr<Bunny>& a, const std::shared_p
 
 std::vector<std::pair<int, int>> BunnyManager::checkSpace(std::pair<int, int> location, bool clear) {
     std::vector<std::pair<int, int>> coords;
-    for (int x = -1; x < 2 && x + location.first >= 0 && x + location.first < 80; x++) {
-        for (int y = -1; y < 2 && y + location.second >= 0 && y + location.second < 80; y++) {
+    for (int x = -1; x < 2 && x + location.first >= 0 && x + location.first < gridSize; x++) {
+        for (int y = -1; y < 2 && y + location.second >= 0 && y + location.second < gridSize; y++) {
             std::pair<int, int> newLocation = {x + location.first, y + location.second};
             if (!(x == 0 && y == 0) &&
-                ((gridOfBunnys[newLocation.first][newLocation.second] == nullptr && clear) ||
-                 (gridOfBunnys[newLocation.first][newLocation.second] != nullptr && !gridOfBunnys[newLocation.first][newLocation.second]->getInfected() && !clear))) {
+                ((gridOfBunnies[newLocation.first][newLocation.second] == nullptr && clear) ||
+                 (gridOfBunnies[newLocation.first][newLocation.second] != nullptr && !gridOfBunnies[newLocation.first][newLocation.second]->getInfected() && !clear))) {
                 coords.push_back(newLocation);
             }
         }
@@ -122,64 +127,87 @@ std::vector<std::pair<int, int>> BunnyManager::checkSpace(std::pair<int, int> lo
 }
 
 void BunnyManager::displayGrid() {
-    for (int i = 0; i < gridSize; i++) {
-        for (int j = 0; j < gridSize; j++) {
-            if (gridOfBunnys[i][j] != nullptr) {
-                std::cout << gridOfBunnys[i][j]->getSymbol();
+    for (int i = 0; i <= gridSize; i++) {
+        for (int j = 0; j < gridSize && i != gridSize; j++) {
+            if (gridOfBunnies[i][j] != nullptr) {
+                std::cout << gridOfBunnies[i][j]->getSymbol();
             } else {
                 std::cout << ".";
             }
             std::cout << " ";
+            if (i == gridSize - 1) {
+                // std::cout << j;
+            }
         }
+        // std::cout << i;
         std::cout << std::endl;
     }
 }
 
-void BunnyManager::born() {
-    for (const auto& mother : locationOfMothers) {
-        std::vector<std::pair<int, int>> spacesFree = checkSpace(mother, true);
-        std::random_shuffle(spacesFree.begin(), spacesFree.end());
-        try {
-            gridOfBunnys[spacesFree[0].first][spacesFree[0].second] = std::make_shared<Bunny>(spacesFree[0]);
-            gridOfBunnys[spacesFree[0].first][spacesFree[0].second]->setColour(gridOfBunnys[mother.first][mother.second]->getColour());
-            noOfBunnys++;
-        } catch (const std::exception& e) {
+void BunnyManager::born(const std::shared_ptr<Bunny>& mother) {
+    std::vector<std::pair<int, int>> spacesFree = checkSpace(mother->getLocation(), true);
+    try {
+        if (spacesFree.empty()) {
+            throw std::exception();
         }
+        int random = rand() % spacesFree.size();
+        gridOfBunnies[spacesFree[random].first][spacesFree[random].second] = std::make_shared<Bunny>(spacesFree[random], mother->getColour());
+        listOfBunnies.push_back(gridOfBunnies[spacesFree[random].first][spacesFree[random].second]);
+        noOfBunnies++;
+    } catch (const std::exception& e) {
     }
 }
 
-void BunnyManager::infect() {
-    for (const auto& infected : locationOfInfected) {
-        std::vector<std::pair<int, int>> spacesConvert = checkSpace(infected, false);
-        std::random_shuffle(spacesConvert.begin(), spacesConvert.end());
-        try {
-            gridOfBunnys[spacesConvert[0].first][spacesConvert[0].second]->setInfected(true);
-        } catch (const std::exception& e) {
+std::shared_ptr<Bunny> BunnyManager::infect(const std::shared_ptr<Bunny>& infected) {
+    std::vector<std::pair<int, int>> spacesConvert = checkSpace(infected->getLocation(), false);
+    try {
+        if (spacesConvert.empty()) {
+            throw std::exception();
         }
+        int random = rand() % spacesConvert.size();
+        return gridOfBunnies[spacesConvert[random].first][spacesConvert[random].second];
+    } catch (const std::exception& e) {
+        return nullptr;
     }
 }
 
 void BunnyManager::createList() {
-    listOfBunnys.clear();
+    listOfBunnies.clear();
     for (int i = 0; i < gridSize; i++) {
         for (int j = 0; j < gridSize; j++) {
-            if (gridOfBunnys[i][j] != nullptr) {
-                listOfBunnys.push_back(gridOfBunnys[i][j]);
+            if (gridOfBunnies[i][j] != nullptr) {
+                listOfBunnies.push_back(gridOfBunnies[i][j]);
             }
         }
     }
 }
 
-std::shared_ptr<Bunny> BunnyManager::movement(int i, int j) {
-    std::pair<int, int> location = {i, j};
-    std::vector<std::pair<int, int>> spacesFree = checkSpace(location, true);
-    std::random_shuffle(spacesFree.begin(), spacesFree.end());
+void BunnyManager::createGrid() {
+    gridOfBunnies.clear();
+    gridOfBunnies.resize(gridSize, std::vector<std::shared_ptr<Bunny>>(gridSize));
+    for (const auto& rabbit : listOfBunnies) {
+        gridOfBunnies[rabbit->getLocation().first][rabbit->getLocation().second] = rabbit;
+    }
+}
+
+std::pair<int, int> BunnyManager::movement(const std::shared_ptr<Bunny>& rabbit) {
+    std::vector<std::pair<int, int>> spacesFree = checkSpace(rabbit->getLocation(), true);
     try {
-        gridOfBunnys[spacesFree[0].first][spacesFree[0].second] = gridOfBunnys[location.first][location.second];
-        gridOfBunnys[location.first][location.second] = nullptr;
-        gridOfBunnys[spacesFree[0].first][spacesFree[0].second]->setLocation(spacesFree[0]);
-        return gridOfBunnys[spacesFree[0].first][spacesFree[0].second];
+        if (spacesFree.empty()) {
+            throw std::exception();
+        }
+        int random = rand() % spacesFree.size();
+        gridOfBunnies[spacesFree[random].first][spacesFree[random].second] = rabbit;
+        gridOfBunnies[rabbit->getLocation().first][rabbit->getLocation().second] = nullptr;
+        gridOfBunnies[spacesFree[random].first][spacesFree[random].second]->setLocation(spacesFree[random]);
+        return spacesFree[random];
     } catch (const std::exception& e) {
-        return gridOfBunnys[i][j];
+        return rabbit->getLocation();
+    }
+}
+
+void BunnyManager::printList() {
+    for (const auto& rabbit : listOfBunnies) {
+        rabbit->printInfo();
     }
 }

@@ -12,29 +12,55 @@
 Bunny::Bunny(std::pair<int, int> loc) : location(loc) {
     sex = rand() % 2 ? SEX::MALE : SEX::FEMALE;
     colour = (COLOUR)(rand() % 4);
-    name = punnyBunnyNames[rand() % punnyBunnyNames.size()];
+    age = 0;
     infected = rand() % 100 < 2 ? true : false;
-    std::string born = (infected) ? "Radioactive Mutant Vampire Bunny " : "";
-    std::cout << born << name << " was born!" << std::endl;
-    Sleep(100);
     if (!infected) {
         symbol = sex == SEX::MALE ? 'm' : 'f';
     } else {
         symbol = 'X';
     }
+    name = sex == SEX::MALE ? maleBunnyNames[rand() % maleBunnyNames.size()] : femaleBunnyNames[rand() % femaleBunnyNames.size()];
+    std::string born = (infected) ? "Infected Bunny " : "";
+    std::cout << born << name << " was born!" << std::endl;
+    Sleep(100);
+}
+
+Bunny::Bunny(std::pair<int, int> loc, int old) : location(loc), age(old) {
+    sex = rand() % 2 ? SEX::MALE : SEX::FEMALE;
+    colour = (COLOUR)(rand() % 4);
+    infected = rand() % 100 < 2 ? true : false;
+    if (!infected) {
+        symbol = sex == SEX::MALE ? (age >= 2 ? 'M' : 'm') : (age >= 2 ? 'F' : 'f');
+    } else {
+        symbol = 'X';
+    }
+    name = sex == SEX::MALE ? maleBunnyNames[rand() % maleBunnyNames.size()] : femaleBunnyNames[rand() % femaleBunnyNames.size()];
+    std::string born = (infected) ? "Infected Bunny " : "";
+    std::cout << born << name << " was born!" << std::endl;
+    Sleep(100);
 }
 
 Bunny::Bunny(std::pair<int, int> loc, COLOUR motherColour) : location(loc), colour(motherColour) {
     sex = rand() % 2 ? SEX::MALE : SEX::FEMALE;
-    name = punnyBunnyNames[rand() % punnyBunnyNames.size()];
+    age = 0;
     infected = rand() % 100 < 2 ? true : false;
-    std::string born = (infected) ? "Radioactive Mutant Vampire Bunny " : "";
+    if (!infected) {
+        symbol = sex == SEX::MALE ? 'm' : 'f';
+    } else {
+        symbol = 'X';
+    }
+    name = sex == SEX::MALE ? maleBunnyNames[rand() % maleBunnyNames.size()] : femaleBunnyNames[rand() % femaleBunnyNames.size()];
+    std::string born = (infected) ? "Infected Bunny " : "";
     std::cout << born << name << " was born!" << std::endl;
     Sleep(100);
 }
 
 char Bunny::getSymbol() {
     return symbol;
+}
+
+void Bunny::setSymbol(char sym) {
+    symbol = sym;
 }
 
 std::pair<int, int> Bunny::getLocation() {
@@ -65,15 +91,15 @@ bool Bunny::getInfected() {
     return infected;
 }
 
-void Bunny::setInfected(bool mutantVampireBunny) {
-    infected = mutantVampireBunny;
-    std::cout << name << " is a Radioactive Mutant Vampire Bunny!" << std::endl;
+void Bunny::setInfected(bool inf) {
+    infected = inf;
+    std::cout << name << " is a Infected Bunny!" << std::endl;
     Sleep(100);
 }
 
 bool Bunny::incrementAge() {
     age++;
-    if ((age == 10 && !infected) || (age == 50 && infected)) {
+    if ((age >= 10 && !infected) || (age >= 50 && infected)) {
         dead();
         return true;
     } else {
@@ -85,12 +111,12 @@ bool Bunny::incrementAge() {
 }
 
 void Bunny::printInfo() {
-    std::string radio = (infected) ? " Radioactive Mutant Vampire Bunny " : " Bunny ";
+    std::string radio = (infected) ? " Infected Bunny " : " Bunny ";
     std::cout << "Name: " << name << ", " << age << " year old, " << sexString() << ", " << colourString() << radio << std::endl;
 }
 
 void Bunny::dead() {
-    std::string died = (infected) ? "Radioactive Mutant Vampire Bunny " : "";
+    std::string died = (infected) ? "Infected Bunny " : "";
     std::cout << died << name << " has died!" << std::endl;
     Sleep(100);
 }
