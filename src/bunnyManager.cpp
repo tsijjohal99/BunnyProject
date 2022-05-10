@@ -211,7 +211,3 @@ void BunnyManager::printList() {
         rabbit->printInfo();
     }
 }
-
-bool BunnyManager::sortList(const std::shared_ptr<Bunny>& a, const std::shared_ptr<Bunny>& b) {
-    return a->getAge() < b->getAge();
-}
