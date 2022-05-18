@@ -1,6 +1,2 @@
 #include "logicHandler.h"
-
-int main() {
-    LogicHandler logic;
-    return 0;
-}
+int main() { LogicHandler logic; }
